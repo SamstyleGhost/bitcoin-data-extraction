@@ -1,0 +1,4 @@
+- I can use curl to download the csv files
+- I can then process the files using "encoding/csv" library in Go
+- I'll have to find a way to work with temporary files and buffer it out
+- I could use websockets to stream data to the frontend
