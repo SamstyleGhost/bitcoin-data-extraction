@@ -1,9 +1,8 @@
 package custom
 
-import "time"
-
 type Transactions struct {
 	Address    string  `json:"address,omitempty"`
+	WalletID   string  `json:"wallet_id,omitempty"`
 	Amount     float64 `json:"amount,omitempty"`
 	IsStandard bool    `json:"is_standard,omitempty"`
 	NextTX     string  `json:"next_tx,omitempty"`
@@ -20,15 +19,16 @@ type TransactionRow struct {
 }
 
 type CashFlowTransaction struct {
-	Found       bool           `json:"found,omitempty"`
-	Label       string         `json:"label,omitempty"` // Will omit the Label value if it is not found
-	TxID        string         `json:"txid,omitempty"`
-	IsCoinbase  bool           `json:"is_coinbase,omitempty"`
-	WalletID    string         `json:"wallet_id,omitempty"`
-	BlockHeight int32          `json:"block_height,omitempty"`
-	BlockPos    int32          `json:"block_pos,omitempty"`
-	Time        time.Time      `json:"time,omitempty"`
-	Size        int16          `json:"size,omitempty"`
-	Ins         []Transactions `json:"ins,omitempty"`
-	Outs        []Transactions `json:"outs,omitempty"`
+	Found          bool           `json:"found,omitempty"`
+	Label          string         `json:"label,omitempty"` // Will omit the Label value if it is not found
+	TxID           string         `json:"txid,omitempty"`
+	IsCoinbase     bool           `json:"is_coinbase,omitempty"`
+	WalletID       string         `json:"wallet_id,omitempty"`
+	BlockHeight    int32          `json:"block_height,omitempty"`
+	BlockPos       int32          `json:"block_pos,omitempty"`
+	Time           int64          `json:"time,omitempty"`
+	Size           int32          `json:"size,omitempty"`
+	In             []Transactions `json:"in,omitempty"`
+	Out            []Transactions `json:"out,omitempty"`
+	UpdatedToBlock int32          `json:"updated_to_block,omitempty"`
 }

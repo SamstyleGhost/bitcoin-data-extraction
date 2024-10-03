@@ -34,10 +34,6 @@ func CSVReader(f string) {
 		log.Fatal(err)
 	}
 
-	// TODO: There are also a couple of rows where the values of addresses are like: Huobi.com (23cvx34...), Polniex.com (00xv23...), etc.
-	// Will need to see what to do with those
-	// Thinking of just ignoring them when converting to JSON
-
 	csvRecords, err := reader.ReadAll()
 	if err != nil {
 		log.Fatal(err)
@@ -74,11 +70,4 @@ func CSVReader(f string) {
 	}
 
 	dataprep.GetTxs(rows)
-	// transactionsFile, err := os.Create(path + f + "_tx_history.json")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// defer transactionsFile.Close()
-	// transactionsFile.Write(transactionsJSON)
 }

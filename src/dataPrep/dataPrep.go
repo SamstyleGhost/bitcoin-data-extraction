@@ -5,54 +5,50 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/SamstyleGhost/bitcoin-data-extraction/src/custom"
 )
 
-/*
-? My end goal is to create a JSON object that would have the cash-flow network (I will have to see if I need to create a JSON file to store the data, because thats what Adam's code does)
-* I will need to have a mutex on the object so that there is no read-write issues while writing
-? How do I limit how many goroutines are spawned
-* Feel like I need to use a buffer which would also have a mutex lock on it. So, whenever a goroutine that has completed its work gives out a JSON object, the forked routine would be joined back and then forked again for a different address
-* This is the Producer-Consumer problem: I have to make sure that the Producer (making the API calls and parsing JSON) writes to a buffer that is being read by the Consumer (writing data to the JSON file)
-*/
-
 func GetTxs(transactions []custom.TransactionRow) {
 	// txCount, startDepth, maxDepth := 0, 0, 3
 
-	var inwardTransactions [][]byte
-	var outwardTransactions [][]byte
+	var inwardTransactions []custom.CashFlowTransaction
 	var inmu sync.Mutex
-	var outmu sync.Mutex
 	var wg sync.WaitGroup
 
-	// var dataSlice []custom.CashFlowTransaction
-	// dataChan := make(chan custom.CashFlowTransaction, 1000)
-
 	for _, tx := range transactions {
-		// dataChan <- custom.CashFlowTransaction{}
 		wg.Add(1)
-		if tx.SentTo == "(fee)" {
-			// This means that the tx is inward transaction
-			go getTransactionThroughID(tx.Transaction, &inwardTransactions, &inmu, &wg)
-		} else {
-			// This means that the tx is outward transaction
-			go getTransactionThroughID(tx.Transaction, &outwardTransactions, &outmu, &wg)
-		}
+		go getTransactionThroughID(tx.Transaction, &inwardTransactions, &inmu, &wg)
 	}
 
 	wg.Wait()
 
-	fmt.Println("Inward")
-	for _, tx := range inwardTransactions {
-		fmt.Println(string(tx))
+	file, err := os.Create("output.json")
+	if err != nil {
+		fmt.Println("Error creating, ", err)
+		return
+	}
+	defer file.Close()
+
+	jsonData, err := json.MarshalIndent(inwardTransactions, "", "    ")
+	if err != nil {
+		fmt.Println("Error unmarshalling, ", err)
+		return
 	}
 
+	_, err = file.Write(jsonData)
+	if err != nil {
+		fmt.Println("Error writing, ", err)
+		return
+	}
+
+	fmt.Println("Done")
 }
 
-func getTransactionThroughID(txID string, slice *[][]byte, mu *sync.Mutex, wg *sync.WaitGroup) {
+func getTransactionThroughID(txID string, slice *[]custom.CashFlowTransaction, mu *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
 	fmt.Printf("Working on calling transaction: %s\n", txID)
 
@@ -81,27 +77,16 @@ func getTransactionThroughID(txID string, slice *[][]byte, mu *sync.Mutex, wg *s
 		return
 	}
 
-	// var result interface{}
-	var result map[string]interface{} // This helps in getting data that we do not know the structure of beforehand
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		fmt.Println(txID, err)
-		return
-	}
 	var obj custom.CashFlowTransaction
+	err = json.Unmarshal(body, &obj)
 
-	if val, ok := result["block_pos"].(float64); ok {
-		obj.BlockPos = int32(val)
-	}
-
-	jsonValue, err := json.Marshal(obj)
 	if err != nil {
 		fmt.Println(txID, err)
 		return
 	}
 
 	mu.Lock()
-	*slice = append(*slice, jsonValue)
+	*slice = append(*slice, obj)
 	defer mu.Unlock()
 
 	fmt.Printf("Done %s\n", txID)
