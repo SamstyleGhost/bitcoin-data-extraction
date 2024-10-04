@@ -27,8 +27,8 @@ type CashFlowTransaction struct {
 	BlockHeight    int32          `json:"block_height,omitempty"`
 	BlockPos       int32          `json:"block_pos,omitempty"`
 	Time           int64          `json:"time,omitempty"`
-	Size           int32          `json:"size,omitempty"`
+	Size           int64          `json:"size,omitempty"`
 	In             []Transactions `json:"in,omitempty"`
 	Out            []Transactions `json:"out,omitempty"`
-	UpdatedToBlock int32          `json:"updated_to_block,omitempty"`
+	UpdatedToBlock int64          `json:"updated_to_block,omitempty"`
 }
