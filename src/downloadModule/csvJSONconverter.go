@@ -22,8 +22,8 @@ func CSVReader(f string) {
 
 	defer rf.Close()
 
-	reader := csv.NewReader(rf) // This is because the CSV that walletexplorer gives has some text in the first line
-	_, err = reader.Read()
+	reader := csv.NewReader(rf)
+	_, err = reader.Read() // This is because the CSV that walletexplorer gives has some text in the first line
 
 	reader.FieldsPerRecord = 7
 	if err != nil {
@@ -65,5 +65,5 @@ func CSVReader(f string) {
 		rows = append(rows, row)
 	}
 
-	dataprep.GetTxs(rows)
+	dataprep.GetTxs(rows, f)
 }

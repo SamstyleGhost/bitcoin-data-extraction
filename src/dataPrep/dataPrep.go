@@ -12,28 +12,28 @@ import (
 	"github.com/SamstyleGhost/bitcoin-data-extraction/src/custom"
 )
 
-func GetTxs(transactions []custom.TransactionRow) {
+func GetTxs(transactions []custom.TransactionRow, address string) {
 	// txCount, startDepth, maxDepth := 0, 0, 3
 
-	var inwardTransactions []custom.CashFlowTransaction
-	var inmu sync.Mutex
+	var cashFlowTransactions []custom.CashFlowTransaction
+	var transactionsMu sync.Mutex
 	var wg sync.WaitGroup
 
 	for _, tx := range transactions {
 		wg.Add(1)
-		go getTransactionThroughID(tx.Transaction, &inwardTransactions, &inmu, &wg)
+		go getTransactionThroughID(tx.Transaction, &cashFlowTransactions, &transactionsMu, &wg)
 	}
 
 	wg.Wait()
 
-	file, err := os.Create("output.json")
+	file, err := os.Create(address + "_tx_lowers.json")
 	if err != nil {
 		fmt.Println("Error creating, ", err)
 		return
 	}
 	defer file.Close()
 
-	jsonData, err := json.MarshalIndent(inwardTransactions, "", "    ")
+	jsonData, err := json.MarshalIndent(cashFlowTransactions, "", "    ")
 	if err != nil {
 		fmt.Println("Error unmarshalling, ", err)
 		return
@@ -54,7 +54,7 @@ func getTransactionThroughID(txID string, slice *[]custom.CashFlowTransaction, m
 
 	apiURL := "http://www.walletexplorer.com/api/1/tx?txid=" + txID + "&caller=Ghost"
 	client := http.Client{
-		Timeout: 10 * time.Second, // Set a timeout for the HTTP request
+		Timeout: 20 * time.Second, // Set a timeout for the HTTP request
 	}
 	req, _ := http.NewRequest("GET", apiURL, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11")
